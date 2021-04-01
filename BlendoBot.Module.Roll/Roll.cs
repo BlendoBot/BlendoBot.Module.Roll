@@ -121,7 +121,7 @@ namespace Roll {
 				});
 			}
 
-			await Task.Delay(0);
+			await Task.CompletedTask;
 		}
 
 		private async Task RollDice(MessageCreateEventArgs e, int numRolls, int diceValue) {
@@ -155,8 +155,7 @@ namespace Roll {
 			if (x >= 10) {
 				return IntToRegionalIndicator(x / 10) + IntToRegionalIndicator(x % 10);
 			} else {
-				return x switch
-				{
+				return x switch {
 					0 => ":zero:",
 					1 => ":one:",
 					2 => ":two:",
