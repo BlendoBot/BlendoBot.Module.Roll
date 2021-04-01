@@ -1,4 +1,7 @@
-﻿using BlendoBotLib;
+﻿using BlendoBot.Core.Command;
+using BlendoBot.Core.Entities;
+using BlendoBot.Core.Interfaces;
+using BlendoBot.Core.Utility;
 using DSharpPlus.EventArgs;
 using System;
 using System.Collections.Generic;
@@ -7,22 +10,18 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Roll {
-	public class Roll : CommandBase {
-		public Roll(ulong guildId, IBotMethods botMethods) : base(guildId, botMethods) { }
+	[Command(Guid = "blendobot.module.roll", Name = "Roll", Author = "Biendeo", DefaultTerm = "roll")]
+	public class Roll : BaseCommand {
+		public Roll(ulong guildId, IBotMethods botMethods) : base(guildId, botMethods) {}
 
-		public override string DefaultTerm => "?roll";
-		public override string Name => "Roll";
 		public override string Description => "Simulates dice rolls and coin flips";
 		public override string Usage => $"Usage ({$"where {"x".Code()} and {"y".Code()} are positive integers".Italics()}):\n{$"{Term} [y]".Code()} ({$"rolls a {"y".Code()}-sided dice, giving a value between 1 and {"y".Code()}".Italics()})\n{$"{Term} d[y]".Code()} ({$"same as {$"{Term} y".Code()}".Italics()})\n{$"{Term} [x]d[y]".Code()} ({$"rolls a {"y".Code()}-sided dice {"x".Code()} number of times".Italics()})\n{$"{Term} coin".Code()} ({"returns either heads or tails".Italics()})";
-		public override string Author => "Biendeo";
-		public override string Version => "0.3.0";
 
 		private Random random;
 
-		public override async Task<bool> Startup() {
+		public override Task<bool> Startup() {
 			random = new Random();
-			await Task.Delay(0);
-			return true;
+			return Task.FromResult(true);
 		}
 
 		public override async Task OnMessage(MessageCreateEventArgs e) {
@@ -34,7 +33,7 @@ namespace Roll {
 				} else {
 					string[] splitRoll = splitMessage[1].Split('d');
 					if (splitRoll.Length == 1 || (splitRoll.Length == 2 && string.IsNullOrWhiteSpace(splitRoll[0]))) {
-						bool success = int.TryParse(splitRoll[splitRoll.Length - 1], out int diceValue);
+						bool success = int.TryParse(splitRoll[^1], out int diceValue);
 						if (success) {
 							if (diceValue > 1000000) {
 								await BotMethods.SendMessage(this, new SendMessageEventArgs {
@@ -53,7 +52,7 @@ namespace Roll {
 							}
 						} else {
 							await BotMethods.SendMessage(this, new SendMessageEventArgs {
-								Message = $"{splitRoll[splitRoll.Length - 1]} is not a valid number!",
+								Message = $"{splitRoll[^1]} is not a valid number!",
 								Channel = e.Channel,
 								LogMessage = "RollErrorSingleInvalidNumber"
 							});

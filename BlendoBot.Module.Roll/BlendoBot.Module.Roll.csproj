@@ -5,4 +5,8 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="BlendoBot.Core" Version="1.0.0-pre.4" />
+  </ItemGroup>
+
 </Project>
