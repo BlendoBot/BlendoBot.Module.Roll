@@ -151,7 +151,7 @@ namespace Roll {
 			}
 		}
 
-		private string IntToRegionalIndicator(int x) {
+		private static string IntToRegionalIndicator(int x) {
 			if (x >= 10) {
 				return IntToRegionalIndicator(x / 10) + IntToRegionalIndicator(x % 10);
 			} else {
