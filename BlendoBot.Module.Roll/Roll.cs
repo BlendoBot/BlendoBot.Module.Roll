@@ -19,6 +19,11 @@ namespace Roll {
 
 		private Random random;
 
+		public const int MinDiceCount = 1;
+		public const int MaxDiceCount = 50;
+		public const int MinDiceSides = 2;
+		public const int MaxDiceSides = 1000000;
+
 		public override Task<bool> Startup() {
 			random = new Random();
 			return Task.FromResult(true);
@@ -35,17 +40,17 @@ namespace Roll {
 					if (splitRoll.Length == 1 || (splitRoll.Length == 2 && string.IsNullOrWhiteSpace(splitRoll[0]))) {
 						bool success = int.TryParse(splitRoll[^1], out int diceValue);
 						if (success) {
-							if (diceValue > 1000000) {
+							if (diceValue > MaxDiceSides) {
 								await BotMethods.SendMessage(this, new SendMessageEventArgs {
-									Message = $"You can't roll a {diceValue}-sided die! Please use a lower number (at most 1,000,000).",
+									Message = $"You can't roll a {diceValue}-sided die! Please use a lower number (at most {MaxDiceSides:N0}).",
 									Channel = e.Channel,
 									LogMessage = "RollErrorSingleTooHigh"
 								});
-							} else if (diceValue >= 2) {
+							} else if (diceValue >= MinDiceSides) {
 								await RollDice(e, 1, diceValue);
 							} else {
 								await BotMethods.SendMessage(this, new SendMessageEventArgs {
-									Message = $"You can't roll a {diceValue}-sided die! Please use a higher number (at least 2).",
+									Message = $"You can't roll a {diceValue}-sided die! Please use a higher number (at least {MinDiceSides}).",
 									Channel = e.Channel,
 									LogMessage = "RollErrorSingleTooLow"
 								});
@@ -60,26 +65,26 @@ namespace Roll {
 					} else if (splitRoll.Length == 2) {
 						bool success1 = int.TryParse(splitRoll[0], out int numDice);
 						if (success1) {
-							if (numDice > 50) {
+							if (numDice > MaxDiceCount) {
 								await BotMethods.SendMessage(this, new SendMessageEventArgs {
-									Message = $"You can't roll {numDice} dice! Please use a lower number (at most 50).",
+									Message = $"You can't roll {numDice} dice! Please use a lower number (at most {MaxDiceCount}).",
 									Channel = e.Channel,
 									LogMessage = "RollErrorMultipleNumTooHigh"
 								});
-							} else if (numDice >= 1) {
+							} else if (numDice >= MinDiceCount) {
 								bool success2 = int.TryParse(splitRoll[1], out int diceValue);
 								if (success2) {
-									if (diceValue > 1000000) {
+									if (diceValue > MaxDiceSides) {
 										await BotMethods.SendMessage(this, new SendMessageEventArgs {
-											Message = $"You can't roll a {diceValue}-sided die! Please use a lower number (at most 1,000,000).",
+											Message = $"You can't roll a {diceValue}-sided die! Please use a lower number (at most {MaxDiceSides:N0}).",
 											Channel = e.Channel,
 											LogMessage = "RollErrorMultipleValueTooHigh"
 										});
-									} else if (diceValue >= 2) {
+									} else if (diceValue >= MinDiceSides) {
 										await RollDice(e, numDice, diceValue);
 									} else {
 										await BotMethods.SendMessage(this, new SendMessageEventArgs {
-											Message = $"You can't roll a {diceValue}-sided die! Please use a higher number (at least 2).",
+											Message = $"You can't roll a {diceValue}-sided die! Please use a higher number (at least {MinDiceSides}).",
 											Channel = e.Channel,
 											LogMessage = "RollErrorMultipleValueTooLow"
 										});
@@ -93,7 +98,7 @@ namespace Roll {
 								}
 							} else {
 								await BotMethods.SendMessage(this, new SendMessageEventArgs {
-									Message = $"You can't roll {numDice} dice! Please use a higher number (at least 1).",
+									Message = $"You can't roll {numDice} dice! Please use a higher number (at least {MinDiceCount}).",
 									Channel = e.Channel,
 									LogMessage = "RollErrorMultipleNumTooLow"
 								});
