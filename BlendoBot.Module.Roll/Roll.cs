@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Roll {
+namespace BlendoBot.Module.Roll {
 	[Command(Guid = "blendobot.module.roll", Name = "Roll", Author = "Biendeo", DefaultTerm = "roll")]
 	public class Roll : BaseCommand {
 		public Roll(ulong guildId, IBotMethods botMethods) : base(guildId, botMethods) {}
