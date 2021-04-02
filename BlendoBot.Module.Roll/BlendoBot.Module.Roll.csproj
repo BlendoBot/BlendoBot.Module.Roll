@@ -2,7 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <Authors>Biendeo</Authors>
+    <Company>BlendoBot</Company>
+    <PackageId>BlendoBot.Module.Roll</PackageId>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

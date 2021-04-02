@@ -1,5 +1,7 @@
 # Roll
 ## Simulates dice rolls and coin flips
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/BlendoBot/BlendoBot.Module.Roll/Tests)
+![Nuget](https://img.shields.io/nuget/v/BlendoBot.Module.Roll)
 
 Ever wanted to heads or tails something? Randomly choose something from a list? The roll command allows you to get a random number within you likings.
 
