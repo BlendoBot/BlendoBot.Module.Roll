@@ -1,7 +1,6 @@
-﻿using BlendoBot.Core.Command;
-using BlendoBot.Core.Entities;
-using BlendoBot.Core.Interfaces;
-using BlendoBot.Core.Utility;
+﻿using BlendoBot.Core.Entities;
+using BlendoBot.Core.Module;
+using BlendoBot.Core.Services;
 using DSharpPlus.EventArgs;
 using System;
 using System.Collections.Generic;
@@ -9,188 +8,98 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlendoBot.Module.Roll {
-	[Command(Guid = "blendobot.module.roll", Name = "Roll", Author = "Biendeo", DefaultTerm = "roll")]
-	public class Roll : BaseCommand {
-		public Roll(ulong guildId, IBotMethods botMethods) : base(guildId, botMethods) {}
+namespace BlendoBot.Module.Roll;
 
-		public override string Description => "Simulates dice rolls and coin flips";
-		public override string Usage => $"Usage ({$"where {"x".Code()} and {"y".Code()} are positive integers".Italics()}):\n{$"{Term} [y]".Code()} ({$"rolls a {"y".Code()}-sided dice, giving a value between 1 and {"y".Code()}".Italics()})\n{$"{Term} d[y]".Code()} ({$"same as {$"{Term} y".Code()}".Italics()})\n{$"{Term} [x]d[y]".Code()} ({$"rolls a {"y".Code()}-sided dice {"x".Code()} number of times".Italics()})\n{$"{Term} coin".Code()} ({"returns either heads or tails".Italics()})";
+[Module(Guid = "com.biendeo.blendobot.module.roll", Name = "Roll", Author = "Biendeo", Version = "2.0.0", Url = "https://github.com/BlendoBot/BlendoBot.Module.Roll")]
+public class Roll : IModule {
+	public Roll(IDiscordInteractor discordInteractor, IModuleManager moduleManager) {
+		Random = new Random();
 
-		private Random random;
+		DiscordInteractor = discordInteractor;
+		ModuleManager = moduleManager;
 
-		public const int MinDiceCount = 1;
-		public const int MaxDiceCount = 50;
-		public const int MinDiceSides = 2;
-		public const int MaxDiceSides = 1000000;
+		RollCommand = new RollCommand(this);
+	}
 
-		public override Task<bool> Startup() {
-			random = new Random();
-			return Task.FromResult(true);
-		}
+	internal ulong GuildId { get; private set; }
 
-		public override async Task OnMessage(MessageCreateEventArgs e) {
-			string[] splitMessage = e.Message.Content.Split(' ');
-			// There must be exactly two terms.
-			if (splitMessage.Length == 2) {
-				if (splitMessage[1].ToLower() == "coin") {
-					await FlipCoin(e);
-				} else {
-					string[] splitRoll = splitMessage[1].Split('d');
-					if (splitRoll.Length == 1 || (splitRoll.Length == 2 && string.IsNullOrWhiteSpace(splitRoll[0]))) {
-						bool success = int.TryParse(splitRoll[^1], out int diceValue);
-						if (success) {
-							if (diceValue > MaxDiceSides) {
-								await BotMethods.SendMessage(this, new SendMessageEventArgs {
-									Message = $"You can't roll a {diceValue}-sided die! Please use a lower number (at most {MaxDiceSides:N0}).",
-									Channel = e.Channel,
-									LogMessage = "RollErrorSingleTooHigh"
-								});
-							} else if (diceValue >= MinDiceSides) {
-								await RollDice(e, 1, diceValue);
-							} else {
-								await BotMethods.SendMessage(this, new SendMessageEventArgs {
-									Message = $"You can't roll a {diceValue}-sided die! Please use a higher number (at least {MinDiceSides}).",
-									Channel = e.Channel,
-									LogMessage = "RollErrorSingleTooLow"
-								});
-							}
-						} else {
-							await BotMethods.SendMessage(this, new SendMessageEventArgs {
-								Message = $"{splitRoll[^1]} is not a valid number!",
-								Channel = e.Channel,
-								LogMessage = "RollErrorSingleInvalidNumber"
-							});
-						}
-					} else if (splitRoll.Length == 2) {
-						bool success1 = int.TryParse(splitRoll[0], out int numDice);
-						if (success1) {
-							if (numDice > MaxDiceCount) {
-								await BotMethods.SendMessage(this, new SendMessageEventArgs {
-									Message = $"You can't roll {numDice} dice! Please use a lower number (at most {MaxDiceCount}).",
-									Channel = e.Channel,
-									LogMessage = "RollErrorMultipleNumTooHigh"
-								});
-							} else if (numDice >= MinDiceCount) {
-								bool success2 = int.TryParse(splitRoll[1], out int diceValue);
-								if (success2) {
-									if (diceValue > MaxDiceSides) {
-										await BotMethods.SendMessage(this, new SendMessageEventArgs {
-											Message = $"You can't roll a {diceValue}-sided die! Please use a lower number (at most {MaxDiceSides:N0}).",
-											Channel = e.Channel,
-											LogMessage = "RollErrorMultipleValueTooHigh"
-										});
-									} else if (diceValue >= MinDiceSides) {
-										await RollDice(e, numDice, diceValue);
-									} else {
-										await BotMethods.SendMessage(this, new SendMessageEventArgs {
-											Message = $"You can't roll a {diceValue}-sided die! Please use a higher number (at least {MinDiceSides}).",
-											Channel = e.Channel,
-											LogMessage = "RollErrorMultipleValueTooLow"
-										});
-									}
-								} else {
-									await BotMethods.SendMessage(this, new SendMessageEventArgs {
-										Message = $"{splitRoll[1]} is not a valid number!",
-										Channel = e.Channel,
-										LogMessage = "RollErrorMultipleValueInvalidNumber"
-									});
-								}
-							} else {
-								await BotMethods.SendMessage(this, new SendMessageEventArgs {
-									Message = $"You can't roll {numDice} dice! Please use a higher number (at least {MinDiceCount}).",
-									Channel = e.Channel,
-									LogMessage = "RollErrorMultipleNumTooLow"
-								});
-							}
-						} else {
-							await BotMethods.SendMessage(this, new SendMessageEventArgs {
-								Message = $"{splitRoll[0]} is not a valid number!",
-								Channel = e.Channel,
-								LogMessage = "RollErrorMultipleNumInvalidNumber"
-							});
-						}
-					} else {
-						await BotMethods.SendMessage(this, new SendMessageEventArgs {
-							Message = $"I couldn't determine what you wanted. Check {$"{BotMethods.GetHelpCommandTerm(this, GuildId)} roll".Code()} for ways to use this command.",
-							Channel = e.Channel,
-							LogMessage = "RollErrorTooManyDs"
-						});
-					}
+	internal readonly RollCommand RollCommand;
+
+	internal readonly Random Random;
+	internal readonly IDiscordInteractor DiscordInteractor;
+	internal readonly IModuleManager ModuleManager;
+
+	public const int MinDiceCount = 1;
+	public const int MaxDiceCount = 50;
+	public const int MinDiceSides = 2;
+	public const int MaxDiceSides = 1000000;
+
+	public Task<bool> Startup(ulong guildId) {
+		GuildId = guildId;
+		return Task.FromResult(ModuleManager.RegisterCommand(this, RollCommand, out _));
+	}
+
+	internal async Task RollDice(MessageCreateEventArgs e, int numRolls, int diceValue) {
+		List<int> results = Enumerable.Range(0, numRolls).Select(_ => Random.Next(diceValue) + 1).ToList();
+		if (results.Count == 1) {
+			await DiscordInteractor.Send(this, new SendEventArgs {
+				Message = IntToRegionalIndicator(results.Single()),
+				Channel = e.Channel,
+				Tag = "RollSuccessSingle"
+			});
+		} else {
+			StringBuilder sb = new();
+			sb.AppendLine($"The results of the {numRolls} dice-rolls are:");
+			sb.AppendLine("```");
+			for (int i = 0; i < numRolls; ++i) {
+				sb.Append(results[i].ToString().PadLeft(8, ' '));
+				if (i % 5 == 4) {
+					sb.AppendLine();
 				}
-			} else {
-				await BotMethods.SendMessage(this, new SendMessageEventArgs {
-					Message = $"I couldn't determine what you wanted. Check {$"{BotMethods.GetHelpCommandTerm(this, GuildId)} roll".Code()} for ways to use this command.",
-					Channel = e.Channel,
-					LogMessage = "RollErrorInvalidArgumentCount"
-				});
 			}
-
-			await Task.CompletedTask;
+			sb.AppendLine("\n```");
+			await DiscordInteractor.Send(this, new SendEventArgs {
+				Message = sb.ToString(),
+				Channel = e.Channel,
+				Tag = "RollSuccessMultiple"
+			});
 		}
+	}
 
-		private async Task RollDice(MessageCreateEventArgs e, int numRolls, int diceValue) {
-			var results = Enumerable.Range(0, numRolls).Select(_ => random.Next(diceValue) + 1).ToList();
-			if (results.Count == 1) {
-				await BotMethods.SendMessage(this, new SendMessageEventArgs {
-					Message = IntToRegionalIndicator(results.Single()),
-					Channel = e.Channel,
-					LogMessage = "RollSuccessSingle"
-				});
-			} else {
-				var sb = new StringBuilder();
-				sb.AppendLine($"The results of the {numRolls} dice-rolls are:");
-				sb.AppendLine("```");
-				for (int i = 0; i < numRolls; ++i) {
-					sb.Append(results[i].ToString().PadLeft(8, ' '));
-					if (i % 5 == 4) {
-						sb.AppendLine();
-					}
-				}
-				sb.AppendLine("\n```");
-				await BotMethods.SendMessage(this, new SendMessageEventArgs {
-					Message = sb.ToString(),
-					Channel = e.Channel,
-					LogMessage = "RollSuccessMultiple"
-				});
-			}
+	internal static string IntToRegionalIndicator(int x) {
+		if (x >= 10) {
+			return IntToRegionalIndicator(x / 10) + IntToRegionalIndicator(x % 10);
+		} else {
+			return x switch {
+				0 => ":zero:",
+				1 => ":one:",
+				2 => ":two:",
+				3 => ":three:",
+				4 => ":four:",
+				5 => ":five:",
+				6 => ":six:",
+				7 => ":seven:",
+				8 => ":eight:",
+				9 => ":nine:",
+				_ => "?",
+			};
 		}
+	}
 
-		private static string IntToRegionalIndicator(int x) {
-			if (x >= 10) {
-				return IntToRegionalIndicator(x / 10) + IntToRegionalIndicator(x % 10);
-			} else {
-				return x switch {
-					0 => ":zero:",
-					1 => ":one:",
-					2 => ":two:",
-					3 => ":three:",
-					4 => ":four:",
-					5 => ":five:",
-					6 => ":six:",
-					7 => ":seven:",
-					8 => ":eight:",
-					9 => ":nine:",
-					_ => "?",
-				};
-			}
-		}
-
-		private async Task FlipCoin(MessageCreateEventArgs e) {
-			int result = random.Next(2);
-			if (result == 0) {
-				await BotMethods.SendMessage(this, new SendMessageEventArgs {
-					Message = ":regional_indicator_h::regional_indicator_e::regional_indicator_a::regional_indicator_d::regional_indicator_s:",
-					Channel = e.Channel,
-					LogMessage = "RollSuccessCoinHeads"
-				});
-			} else {
-				await BotMethods.SendMessage(this, new SendMessageEventArgs {
-					Message = ":regional_indicator_t::regional_indicator_a::regional_indicator_i::regional_indicator_l::regional_indicator_s:",
-					Channel = e.Channel,
-					LogMessage = "RollSuccessCoinTails"
-				});
-			}
+	internal async Task FlipCoin(MessageCreateEventArgs e) {
+		int result = Random.Next(2);
+		if (result == 0) {
+			await DiscordInteractor.Send(this, new SendEventArgs {
+				Message = ":regional_indicator_h::regional_indicator_e::regional_indicator_a::regional_indicator_d::regional_indicator_s:",
+				Channel = e.Channel,
+				Tag = "RollSuccessCoinHeads"
+			});
+		} else {
+			await DiscordInteractor.Send(this, new SendEventArgs {
+				Message = ":regional_indicator_t::regional_indicator_a::regional_indicator_i::regional_indicator_l::regional_indicator_s:",
+				Channel = e.Channel,
+				Tag = "RollSuccessCoinTails"
+			});
 		}
 	}
 }

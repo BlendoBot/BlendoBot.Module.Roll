@@ -1,11 +1,10 @@
-# Roll
+# BlendoBot.Module.Roll
 ## Simulates dice rolls and coin flips
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/BlendoBot/BlendoBot.Module.Roll/Tests)
-![Nuget](https://img.shields.io/nuget/v/BlendoBot.Module.Roll)
 
 Ever wanted to heads or tails something? Randomly choose something from a list? The roll command allows you to get a random number within you likings.
 
-## Usage
+## Discord usage
 All of these commands use the default term `?roll`, but your guild may rename this term. `[x]` should be replaced with a positive integer between 1 and 50. `[y]` should be replaced with a positive integer between 2 and 1,000,000.
 - `?roll [y]`
   - Simulates rolling a `y`-sided die. The command will print out a number between 1 and `y` inclusive.

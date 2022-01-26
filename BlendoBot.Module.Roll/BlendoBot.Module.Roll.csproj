@@ -1,19 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Authors>Biendeo</Authors>
     <Company>BlendoBot</Company>
     <PackageId>BlendoBot.Module.Roll</PackageId>
-    <Version>0.0.0</Version>
+    <Version>1.0.0</Version>
+    <RepositoryUrl>https://github.com/BlendoBot/BlendoBot.Module.Roll</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/BlendoBot/BlendoBot.Module.Roll</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>discord;bot;module</PackageTags>
+    <Description>Creates user command that simulates rolling dice and flipping coins.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BlendoBot.Core" Version="1.0.0-pre.4" />
+    <PackageReference Include="BlendoBot.Core" Version="1.1.0" />
     <PackageReference Include="MinVer" Version="2.5.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
 </Project>
