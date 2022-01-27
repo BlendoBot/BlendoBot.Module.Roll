@@ -10,7 +10,7 @@
     <PackageProjectUrl>https://github.com/BlendoBot/BlendoBot.Module.Roll</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>discord;bot;module</PackageTags>
-    <Description>Creates user command that simulates rolling dice and flipping coins.</Description>
+    <Description>Creates a Discord command that simulates rolling dice and flipping coins.</Description>
   </PropertyGroup>
 
   <ItemGroup>
